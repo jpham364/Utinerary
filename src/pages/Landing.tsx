@@ -1,15 +1,16 @@
-import { Button } from "@/components/ui/button"
-import { useNavigate } from "react-router"
+import { buttonVariants } from "@/components/ui/button"
+import { Link } from "react-router"
+import { cn } from "@/lib/utils"
 
 function Landing() {
   
-  const navigate = useNavigate()
   return (
     <div className="flex flex-col items-center justify-center min-h-svh">
       <h1 className="text-7xl font-family-sans font-bold">Utinerary</h1>
       <h1 className="text-4xl font-family-sans font-semibold">Let's plan.</h1>
       
-      <Button className="mt-4 text-xl p-5" onClick={() => navigate("/login")}> Get Started </Button>
+  
+      <Link className={cn(buttonVariants({ variant: "default" }), "mt-4 text-xl p-5")}to="/signup"> Get Started </Link>
     </div>
   )
 }
