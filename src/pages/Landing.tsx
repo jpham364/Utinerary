@@ -1,6 +1,6 @@
 import { buttonVariants } from "@/components/ui/button"
 import { Link } from "react-router"
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils/utils"
 
 function Landing() {
   
