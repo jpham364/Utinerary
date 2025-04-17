@@ -4,9 +4,13 @@ import { useSession } from "@/context/AuthProvider";
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const session = useSession();
 
-  if (!session) {
+  if (session === undefined) {
+    return <div className="p-4">Loading...</div>; // or a spinner
+  }
+
+  if (session === null) {
     return <Navigate to="/" replace />;
   }
 
-  return children;
+  return <>{children}</>;
 }
