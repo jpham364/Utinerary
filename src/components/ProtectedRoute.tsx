@@ -5,7 +5,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const session = useSession();
 
   if (session === undefined) {
-    return <div className="p-4">Loading...</div>; // or a spinner
+    return <div className="p-4"></div>; // or a spinner
   }
 
   if (session === null) {

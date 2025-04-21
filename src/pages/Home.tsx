@@ -2,6 +2,7 @@
 
 import supabase from "../utils/supabase";
 import { useEffect, useState } from "react"
+import { Link } from "react-router"
 
 import {
   Dialog,
@@ -12,15 +13,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-import { User, LogOut, Settings} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Header } from "@/components/header";
 
 import { NewPlanForm } from "@/components/newPlan-form";
 import { format } from "date-fns"
@@ -58,37 +54,9 @@ function Home() {
     <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto">
 
-        {/* Header nav bar */}
-        <header className="border-b py-4 flex justify-between items-center">
-          <h1 className="text-4xl font-bold font-family-sans">Utinerary</h1>
-
-          <div className="flex items-center gap-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="hover:border-gray-600">
-                  <User />
-                  Profile
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {/* <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4"/>Settings
-                </DropdownMenuItem> */}
-                
-                <DropdownMenuItem
-                  onClick={async () => {
-                    await supabase.auth.signOut();
-                    window.location.href = "/"; // or use router.push("/") if you're using React Router
-                  }}
-                >
-                  <LogOut className="mr-2 h-4 w-4" /> Log Out
-                </DropdownMenuItem>
-                
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-
+        {/* Insert Header */}
+        <Header/>
+        
         {/* Buttons & tabs */}
         <div className="flex justify-end mt-4 mb-4">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -128,9 +96,11 @@ function Home() {
               </CardHeader>
               <CardContent>
                 <div className="mt-4">
-                  <Button size="sm" variant="secondary">
-                    View Plan
-                  </Button>
+                  <Link to={`/plan/${plan.id}`}>
+                    <Button size="sm" variant="secondary">
+                      View Plan
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

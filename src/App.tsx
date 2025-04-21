@@ -6,6 +6,7 @@ import Landing from "@/pages/Landing"
 import Login from "@/pages/Login"
 import Signup from "@/pages/Signup"
 import Home from "@/pages/Home"
+import Plan from "./pages/Plan"
 
 function App() {
   return (
@@ -18,6 +19,14 @@ function App() {
         element={
           <ProtectedRoute>
             <Home />
+          </ProtectedRoute>
+        }
+      />
+      <Route 
+        path="/plan/:id"
+        element={
+          <ProtectedRoute>
+            <Plan />
           </ProtectedRoute>
         }
       />
