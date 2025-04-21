@@ -1,6 +1,7 @@
 "use client"
 
 import supabase from "../utils/supabase";
+import { useEffect, useState } from "react"
 
 import {
   Dialog,
@@ -22,39 +23,41 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { NewPlanForm } from "@/components/newPlan-form";
-
-const testPlans = [
-  {
-    id: 1,
-    name: "Weekend in Seattle",
-    date: "Apr 20–21, 2025",
-    collaborators: ["Jon", "Taylor", "Tim"],
-  },
-  {
-    id: 2,
-    name: "Food Crawl in Portland",
-    date: "May 5, 2025",
-    collaborators: ["Mini", "Jon"],
-  },
-  {
-    id: 3,
-    name: "Trip to Bend",
-    date: "June 5, 2025",
-    collaborators: ["Mini", "Jon"],
-  },
-  {
-    id: 4,
-    name: "Japan Gang",
-    date: "August 21, 2025",
-    collaborators: ["Mini", "Jon"],
-  },
-];
+import { format } from "date-fns"
 
 function Home() {
+
+  type Plan = {
+    id: number;
+    title: string;
+    start: string | null;
+    // add other fields as needed
+  };
+
+  const [plans, setPlans] = useState<Plan[]>([])
+
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  const fetchPlans = async () => {
+    const { data, error } = await supabase.from('plans').select()
+    if (error){
+      console.error("Error loading plans:", error)
+    }
+    else{
+      setPlans(data)
+    }
+  }
+
+  useEffect(() => {
+    fetchPlans()
+  }, [])
+
+  
+
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto">
-        
+
         {/* Header nav bar */}
         <header className="border-b py-4 flex justify-between items-center">
           <h1 className="text-4xl font-bold font-family-sans">Utinerary</h1>
@@ -68,9 +71,9 @@ function Home() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem>
+                {/* <DropdownMenuItem>
                   <Settings className="mr-2 h-4 w-4"/>Settings
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
                 
                 <DropdownMenuItem
                   onClick={async () => {
@@ -88,7 +91,7 @@ function Home() {
 
         {/* Buttons & tabs */}
         <div className="flex justify-end mt-4 mb-4">
-          <Dialog>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">Create Utinerary</Button>
             </DialogTrigger>
@@ -101,7 +104,10 @@ function Home() {
               </DialogHeader>
 
               {/* New Plan Form */}
-              <NewPlanForm />
+              <NewPlanForm 
+                onPlanCreated={fetchPlans}
+                onCloseDialog={() => setDialogOpen(false)} 
+              />
               
             </DialogContent>
           </Dialog>
@@ -109,14 +115,16 @@ function Home() {
 
         {/* Main content grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {testPlans.map((plan) => (
+          {plans.map((plan) => (
             <Card
               key={plan.id}
               className="hover:shadow-lg transition-shadow duration-200"
             >
               <CardHeader>
-                <CardTitle className="text-xl">{plan.name}</CardTitle>
-                <p className="text-muted-foreground text-sm">{plan.date}</p>
+                <CardTitle className="text-xl">{plan.title}</CardTitle>
+                <p className="text-muted-foreground text-sm">
+                  {plan.start ? format(new Date(plan.start), "PPP") : "No date"}
+                </p>
               </CardHeader>
               <CardContent>
                 <div className="mt-4">

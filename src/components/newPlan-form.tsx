@@ -39,7 +39,13 @@ const formSchema = z.object({
   
 })
 
-export function NewPlanForm() {
+export function NewPlanForm({
+  onPlanCreated,
+  onCloseDialog,
+}: {
+  onPlanCreated: () => void;
+  onCloseDialog: () => void;
+}) {
   
     // 1. Define form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -73,6 +79,8 @@ export function NewPlanForm() {
       // Test console log
       console.log("Plan inserted! - ", data)
       form.reset()
+      onPlanCreated()
+      onCloseDialog()
     }
 
     console.log(values)
