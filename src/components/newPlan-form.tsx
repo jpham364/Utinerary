@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 
+import supabase from "@/utils/supabase"
+
 
 const formSchema = z.object({
   title: z.string().min(1, {
@@ -39,18 +41,40 @@ const formSchema = z.object({
 
 export function NewPlanForm() {
   
-    // 1. Define your form.
+    // 1. Define form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
+      start_timestamp: undefined
     },
   })
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+ 
+    const user = await supabase.auth.getUser()
+    const userId = user?.data?.user?.id
+
+    const { data, error } = await supabase
+      .from("plans")
+      .insert([
+        {
+          title: values.title,
+          start: values.start_timestamp,
+          user_id: userId
+        },
+      ])
+
+    if (error) {
+      console.error("Plan insert error:", error)
+    } 
+    else{
+      // Test console log
+      console.log("Plan inserted! - ", data)
+      form.reset()
+    }
+
     console.log(values)
   }
 
@@ -72,7 +96,7 @@ export function NewPlanForm() {
           )}
         />
 
-<FormField
+        <FormField
           control={form.control}
           name="start_timestamp"
           render={({ field }) => (
@@ -109,7 +133,9 @@ export function NewPlanForm() {
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+
+        <Button type="submit">Create</Button>
+
       </form>
     </Form>
   )
