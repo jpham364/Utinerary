@@ -1,13 +1,37 @@
 import { useParams } from "react-router"
 import { useEffect, useState } from "react"
 import supabase from "@/utils/supabase"
+import { Link } from "react-router"
 
-import { Header } from "@/components/header"
+import { Header } from "@/components/Header"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft } from "lucide-react"
+import { ChevronLeft, MapPin } from "lucide-react"
 import { useNavigate } from "react-router"
 
+
 import { format } from "date-fns"
+
+
+const demoActivities = [
+  {
+    id: "1",
+    title: "Brunch at Pine State",
+    start_time: "2025-04-21T10:30:00Z",
+    location: "Pine State Biscuits",
+  },
+  {
+    id: "2",
+    title: "Walk at Laurelhurst Park",
+    start_time: "2025-04-21T13:00:00Z",
+    location: "Laurelhurst Park",
+  },
+  {
+    id: "3",
+    title: "Coffee at Coava",
+    start_time: "2025-04-21T15:30:00Z",
+    location: "Coava Coffee",
+  },
+]
 
 export default function Plan() {
 
@@ -102,11 +126,31 @@ export default function Plan() {
 
         </div>
 
+        {/* Activities Section */}
+        <div className="mt-10 space-y-4">
+
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold text-foreground">Activities</h2>
+            <Button variant="outline" size="sm" onClick={() => console.log("Navigate to add activity")}>
+              + Add Activity
+            </Button>
+          </div>
+
+          {demoActivities.map((a) => (
+            <div className="border rounded-lg p-3 space-y-1 hover:shadow-lg transition-shadow duration-200">
+              <div className="flex justify-between">
+                <h3 className="font-semibold">{a.title}</h3>
+                <span className="text-sm text-muted-foreground">
+                  {format(new Date(a.start_time), "p")}
+                </span>
+              </div>
+              <p className="text-muted-foreground text-sm flex flex-row gap-2"> <MapPin size={20} strokeWidth={1.5} /> {a.location}</p>
+            </div>
+          ))}
 
 
-
-
-
+        </div>
 
 
       </div>
