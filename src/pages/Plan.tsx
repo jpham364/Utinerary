@@ -5,33 +5,23 @@ import { Link } from "react-router"
 
 import { Header } from "@/components/Header"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, MapPin } from "lucide-react"
+import { ChevronLeft, MapPin, Plus } from "lucide-react"
 import { useNavigate } from "react-router"
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+import { NewActivityForm } from "@/components/newActivity-form"
 
 
 import { format } from "date-fns"
 
-
-const demoActivities = [
-  {
-    id: "1",
-    title: "Brunch at Pine State",
-    start_time: "2025-04-21T10:30:00Z",
-    location: "Pine State Biscuits",
-  },
-  {
-    id: "2",
-    title: "Walk at Laurelhurst Park",
-    start_time: "2025-04-21T13:00:00Z",
-    location: "Laurelhurst Park",
-  },
-  {
-    id: "3",
-    title: "Coffee at Coava",
-    start_time: "2025-04-21T15:30:00Z",
-    location: "Coava Coffee",
-  },
-]
 
 export default function Plan() {
 
@@ -40,7 +30,34 @@ export default function Plan() {
   const { id } = useParams<{ id: string }>()
 
   const [plan, setPlan] = useState<any>(null)
+
+  type Activity = {
+    id: number;
+    title: string;
+    location: string;
+    // add other fields as needed
+  };
+
+  const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  const fetchActivities = async () => {
+    const { data, error } = await supabase
+      .from('activities')
+      .select("*")
+      .eq("plan_id", id)
+    if (error){
+      console.error("Error loading plans:", error)
+    }
+    else{
+      setActivities(data)
+    }
+  }
+
+  useEffect(() => {
+    fetchActivities()
+  }, [])
   
 
   useEffect(() => {
@@ -63,7 +80,6 @@ export default function Plan() {
   }, [id])
 
   if (loading) return <p></p>
-
   if (!plan) return <p>Plan not found.</p>
 
   return (
@@ -132,18 +148,35 @@ export default function Plan() {
           {/* Header */}
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold text-foreground">Activities</h2>
-            <Button variant="outline" size="sm" onClick={() => console.log("Navigate to add activity")}>
-              + Add Activity
-            </Button>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline"> <Plus size={20} strokeWidth={2.25} /> Add</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add an activity</DialogTitle>
+                  <DialogDescription>
+                    Set up details for your activity.
+                  </DialogDescription>
+                </DialogHeader>
+            
+                {/* New Plan Form */}
+                <NewActivityForm 
+                  onPlanCreated={fetchActivities}
+                  onCloseDialog={() => setDialogOpen(false)} 
+                  planId={id!}/>
+                
+              </DialogContent>
+            </Dialog>
           </div>
 
-          {demoActivities.map((a) => (
-            <div className="border rounded-lg p-3 space-y-1 hover:shadow-lg transition-shadow duration-200">
+          {activities.map((a) => (
+            <div key={a.id} className="border rounded-lg p-3 space-y-1 hover:shadow-lg transition-shadow duration-200">
               <div className="flex justify-between">
                 <h3 className="font-semibold">{a.title}</h3>
-                <span className="text-sm text-muted-foreground">
-                  {format(new Date(a.start_time), "p")}
-                </span>
+                {/* <span className="text-sm text-muted-foreground">
+                  {format(new Date(a.start), "p")}
+                </span> */}
               </div>
               <p className="text-muted-foreground text-sm flex flex-row gap-2"> <MapPin size={20} strokeWidth={1.5} /> {a.location}</p>
             </div>
