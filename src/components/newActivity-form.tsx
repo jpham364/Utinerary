@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { useState } from "react"
 
 import supabase from "@/utils/supabase"
 import { Button } from "@/components/ui/button"
@@ -16,6 +15,17 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+
+import { TimePicker12 } from "./time-picker"
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/utils/utils"
+import { CalendarIcon } from "lucide-react"
+import { format } from "date-fns";
 
 
 // Zod schema
@@ -60,6 +70,7 @@ export function NewActivityForm({
         {
           title: values.title,
           location: values.location,
+          start_time: values.time,
           plan_id: planId
         },
       ])
@@ -74,7 +85,7 @@ export function NewActivityForm({
     }
   }
 
-  const [time, setTime] = useState<Date | undefined>(undefined);
+  
 
   return (
     <Form {...form}>
@@ -103,6 +114,45 @@ export function NewActivityForm({
                 <Input placeholder="Enter a location" {...field} />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="time"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel className="text-left">Time</FormLabel>
+              <Popover>
+                <FormControl>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[280px] justify-start text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {field.value ? (
+                        format(field.value, "hh:mm a")
+                      ) : (
+                        <span>Pick a time</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                </FormControl>
+                <PopoverContent className="w-auto p-0">
+                  
+                  <div className="p-3 border-t border-border">
+                    <TimePicker12
+                      setDate={field.onChange}
+                      date={field.value}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
             </FormItem>
           )}
         />

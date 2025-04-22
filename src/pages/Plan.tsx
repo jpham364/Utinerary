@@ -115,22 +115,18 @@ export default function Plan() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
 
-            {/* Date */}
+            {/* Start Date */}
             <div className="space-y-1">
               <p className="text-foreground font-medium">Start Date</p>
-              <p>{plan.start ? format(new Date(plan.start), "PPP") : "No date"}</p>
+              <p>{plan.start ? format(new Date(plan.start), "PPP") : "Error"}</p>
 
-              <p className="text-foreground font-medium mt-2">End Date</p>
-              <p>{plan.end ? format(new Date(plan.end), "PPP") : "No date"}</p>
+              
             </div>
 
-            {/* Time */}
+            {/* End Date */}
             <div className="space-y-1">
-              <p className="text-foreground font-medium">Start Time</p>
-              <p>{plan.start ? format(new Date(plan.start), "p") : "No time"}</p>
-
-              <p className="text-foreground font-medium mt-2">End Time</p>
-              <p>{plan.end ? format(new Date(plan.end), "p") : "No time"}</p>
+              <p className="text-foreground font-medium">End Date</p>
+              <p>{plan.end ? format(new Date(plan.end), "PPP") : "No date set"}</p>
             </div>
 
             {/* Location */}
