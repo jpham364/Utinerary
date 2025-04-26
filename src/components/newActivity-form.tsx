@@ -70,7 +70,7 @@ export function NewActivityForm({
         {
           title: values.title,
           location: values.location,
-          start_time: values.time,
+          start: values.time,
           plan_id: planId
         },
       ])

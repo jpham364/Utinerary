@@ -1,11 +1,10 @@
 import { useParams } from "react-router"
 import { useEffect, useState } from "react"
 import supabase from "@/utils/supabase"
-import { Link } from "react-router"
 
 import { Header } from "@/components/Header"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, MapPin, Plus } from "lucide-react"
+import { ChevronLeft, MapPin, Plus, Clock } from "lucide-react"
 import { useNavigate } from "react-router"
 
 import {
@@ -16,6 +15,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+
 
 import { NewActivityForm } from "@/components/newActivity-form"
 
@@ -35,6 +42,7 @@ export default function Plan() {
     id: number;
     title: string;
     location: string;
+    start: string | null;
     // add other fields as needed
   };
 
@@ -166,18 +174,29 @@ export default function Plan() {
             </Dialog>
           </div>
 
-          {activities.map((a) => (
-            <div key={a.id} className="border rounded-lg p-3 space-y-1 hover:shadow-lg transition-shadow duration-200">
-              <div className="flex justify-between">
-                <h3 className="font-semibold">{a.title}</h3>
-                {/* <span className="text-sm text-muted-foreground">
-                  {format(new Date(a.start), "p")}
-                </span> */}
-              </div>
-              <p className="text-muted-foreground text-sm flex flex-row gap-2"> <MapPin size={20} strokeWidth={1.5} /> {a.location}</p>
-            </div>
-          ))}
 
+          {activities.map((a) => (
+            <Accordion key={a.id} type="single" collapsible className="w-full border rounded-lg p-3 space-y-1 hover:shadow-lg transition-shadow duration-200">
+              <AccordionItem value="item-1">
+                <AccordionTrigger className="font-semibold text-md p-0">
+                  <div className="flex flex-col">
+                    <h3>{a.title}</h3>
+                    <div className="flex flex-row gap-4">
+                      <p className="text-muted-foreground text-sm flex flex-row gap-2"> <MapPin size={20} strokeWidth={1.5} /> {a.location}</p>
+                      {a.start && (
+                        <p className="text-muted-foreground text-sm flex flex-row gap-2 items-center">
+                          <Clock size={20} strokeWidth={1.5} /> {format(new Date(a.start), "hh:mm a")}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="py-2">
+                  Placeholder content
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          ))}
 
         </div>
 
