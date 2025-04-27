@@ -30,10 +30,10 @@ import supabase from "@/utils/supabase"
 
 
 const formSchema = z.object({
-  title: z.string().min(1, {
-    message: "Title cannot be empty.",
-  }),
-  start_timestamp: z.date({
+  title: z.string()
+    .min(1, { message: "Title cannot be empty."})
+    .max(50, { message: "Title cannot be longer than 30 characters." }),
+  start: z.date({
     required_error: "A day is required."
   })
   
@@ -52,7 +52,7 @@ export function NewPlanForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
-      start_timestamp: undefined
+      start: undefined
     },
   })
 
@@ -67,7 +67,7 @@ export function NewPlanForm({
       .insert([
         {
           title: values.title,
-          start: values.start_timestamp,
+          start: values.start,
           user_id: userId
         },
       ])
@@ -106,7 +106,7 @@ export function NewPlanForm({
 
         <FormField
           control={form.control}
-          name="start_timestamp"
+          name="start"
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Date</FormLabel>

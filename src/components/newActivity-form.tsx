@@ -30,12 +30,12 @@ import { format } from "date-fns";
 
 // Zod schema
 const formSchema = z.object({
-  title: z.string().min(1, {
-    message: "Title is required.",
-  }),
-  location: z.string().min(1, {
-    message: "Location is required.",
-  }),
+  title: z.string()
+    .min(1, { message: "Title cannot be empty."})
+    .max(50, { message: "Title cannot be longer than 30 characters." }),
+  location: z.string()
+    .min(1, { message: "Location is required.",})
+    .max(35, { message: "Title cannot be longer than 30 characters." }),
   time: z.date().optional(),
 })
 
@@ -123,7 +123,7 @@ export function NewActivityForm({
           name="time"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel className="text-left">Time</FormLabel>
+              <FormLabel className="text-left">Time (optional)</FormLabel>
               <Popover>
                 <FormControl>
                   <PopoverTrigger asChild>

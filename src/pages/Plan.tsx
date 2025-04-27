@@ -25,6 +25,7 @@ import {
 
 
 import { NewActivityForm } from "@/components/newActivity-form"
+import { EditPlanForm } from "@/components/editPlan-form";
 
 
 import { format } from "date-fns"
@@ -48,7 +49,8 @@ export default function Plan() {
 
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [activityDialogOpen, setActivityDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const fetchActivities = async () => {
     const { data, error } = await supabase
@@ -63,29 +65,27 @@ export default function Plan() {
     }
   }
 
-  useEffect(() => {
-    fetchActivities()
-  }, [])
-  
+  const fetchPlan = async () => {
+    const { data, error } = await supabase
+      .from("plans")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      console.error("Failed to fetch plan:", error)
+    } 
+    else {
+      setPlan(data)
+    }
+    setLoading(false)
+  };
 
   useEffect(() => {
-    const fetchPlan = async () => {
-      const { data, error } = await supabase
-        .from("plans")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (error) {
-        console.error("Failed to fetch plan:", error)
-      } 
-      else {
-        setPlan(data)
-      }
-      setLoading(false)
-    };
     fetchPlan();
+    fetchActivities()
   }, [id])
+
 
   if (loading) return <p></p>
   if (!plan) return <p>Plan not found.</p>
@@ -115,9 +115,27 @@ export default function Plan() {
           {/* Header */}
           <div className="flex justify-between items-center">
             <h2 className="font-bold text-lg text-foreground">Details</h2>
-            <Button variant="default" size="sm" onClick={() => console.log("Open edit modal")}>
-              Edit
-            </Button>
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="default">  Edit</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Edit Plan Details</DialogTitle>
+                  <DialogDescription>
+                    Update your plan information below.
+                  </DialogDescription>
+                </DialogHeader>
+            
+                {/* New Plan Form */}
+                <EditPlanForm
+                  plan={plan}
+                  onOpenChange={setEditDialogOpen}
+                  onPlanUpdated={fetchPlan}
+                />
+
+              </DialogContent>
+            </Dialog>
           </div>
           
 
@@ -149,10 +167,10 @@ export default function Plan() {
         {/* Activities Section */}
         <div className="mt-10 space-y-4">
 
-          {/* Header */}
+          {/* Activities Header */}
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold text-foreground">Activities</h2>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <Dialog open={activityDialogOpen} onOpenChange={setActivityDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline"> <Plus size={20} strokeWidth={2.25} /> Add</Button>
               </DialogTrigger>
@@ -167,7 +185,7 @@ export default function Plan() {
                 {/* New Plan Form */}
                 <NewActivityForm 
                   onPlanCreated={fetchActivities}
-                  onCloseDialog={() => setDialogOpen(false)} 
+                  onCloseDialog={() => setActivityDialogOpen(false)} 
                   planId={id!}/>
                 
               </DialogContent>
@@ -177,11 +195,11 @@ export default function Plan() {
 
           {activities.map((a) => (
             <Accordion key={a.id} type="single" collapsible className="w-full border rounded-lg p-3 space-y-1 hover:shadow-lg transition-shadow duration-200">
-              <AccordionItem value="item-1">
+              <AccordionItem value={`item-${a.id}`}>
                 <AccordionTrigger className="font-semibold text-md p-0">
                   <div className="flex flex-col">
                     <h3>{a.title}</h3>
-                    <div className="flex flex-row gap-4">
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 ">
                       <p className="text-muted-foreground text-sm flex flex-row gap-2"> <MapPin size={20} strokeWidth={1.5} /> {a.location}</p>
                       {a.start && (
                         <p className="text-muted-foreground text-sm flex flex-row gap-2 items-center">
