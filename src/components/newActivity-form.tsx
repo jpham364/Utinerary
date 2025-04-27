@@ -64,6 +64,9 @@ export function NewActivityForm({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     
+    const user = await supabase.auth.getUser()
+    const userId = user?.data?.user?.id
+
     const { data, error } = await supabase
       .from("activities")
       .insert([
@@ -71,7 +74,8 @@ export function NewActivityForm({
           title: values.title,
           location: values.location,
           start: values.time,
-          plan_id: planId
+          plan_id: planId,
+          user_id: userId
         },
       ])
 
