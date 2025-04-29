@@ -35,7 +35,11 @@ const formSchema = z.object({
     .max(50, { message: "Title cannot be longer than 30 characters." }),
   start: z.date({
     required_error: "A day is required."
-  })
+  }),
+  location: z.string()
+    .min(1, {message: "Location cannot be empty."})
+    .max(30, { message: "Title cannot be longer than 30 characters." })
+    .optional(),
   
 })
 
@@ -52,7 +56,8 @@ export function NewPlanForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
-      start: undefined
+      start: undefined,
+      location: "",
     },
   })
 
@@ -68,6 +73,7 @@ export function NewPlanForm({
         {
           title: values.title,
           start: values.start,
+          location: values.location || "",
           user_id: userId
         },
       ])
@@ -137,6 +143,20 @@ export function NewPlanForm({
                   />
                 </PopoverContent>
               </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="location"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Location</FormLabel>
+              <FormControl>
+                <Input placeholder="City or Neighborhood" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

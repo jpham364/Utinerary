@@ -179,7 +179,7 @@ export function EditPlanForm({ plan, onOpenChange, onPlanUpdated }: EditPlanForm
             <FormItem>
               <FormLabel>Location</FormLabel>
               <FormControl>
-                <Input placeholder="Enter location" {...field} />
+                <Input placeholder="City or Neighborhood" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

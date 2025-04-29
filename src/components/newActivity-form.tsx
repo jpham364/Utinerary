@@ -115,7 +115,7 @@ export function NewActivityForm({
             <FormItem>
               <FormLabel>Location</FormLabel>
               <FormControl>
-                <Input placeholder="Enter a location" {...field} />
+                <Input placeholder="Name or Address (e.g., Starbucks, 123 Main St)" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

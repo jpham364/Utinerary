@@ -61,7 +61,7 @@ export function SignupForm({
           {accSuccess ? (
             <div className="text-center">
               <p className="text-sm text-green-600 font-medium">Success! Check your email to confirm your account before logging in.</p>
-              <Link className={cn(buttonVariants({ variant: "default" }), "w-full mt-2 ")}to="/login"> Log In </Link>
+              <Link className={cn(buttonVariants({ variant: "default" }), "w-full mt-2 ")} to="/login"> Log In </Link>
             </div>
           ):(
             <form onSubmit={handleSignup}>
