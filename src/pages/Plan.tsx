@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/accordion";
 
 import { NewActivityForm } from "@/components/newActivity-form";
+import { EditActivityForm } from "@/components/editActivity-form";
 import { EditPlanForm } from "@/components/editPlan-form";
 
 import { format } from "date-fns";
@@ -45,8 +46,14 @@ export default function Plan() {
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activityDialogOpen, setActivityDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  const [addActivityDialogOpen, setAddActivityDialogOpen] = useState(false);
+  const [editActivityDialogOpen, setEditActivityDialogOpen] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(
+    null
+  );
+
+  const [editPlanDialogOpen, setEditPlanDialogOpen] = useState(false);
 
   const fetchActivities = async () => {
     const { data, error } = await supabase
@@ -124,7 +131,10 @@ export default function Plan() {
           {/* Header */}
           <div className="flex justify-between items-center">
             <h2 className="font-bold text-lg text-foreground">Details</h2>
-            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+            <Dialog
+              open={editPlanDialogOpen}
+              onOpenChange={setEditPlanDialogOpen}
+            >
               <DialogTrigger asChild>
                 <Button variant="default"> Edit</Button>
               </DialogTrigger>
@@ -136,10 +146,10 @@ export default function Plan() {
                   </DialogDescription>
                 </DialogHeader>
 
-                {/* New Plan Form */}
+                {/* Edit Plan Form */}
                 <EditPlanForm
                   plan={plan}
-                  onOpenChange={setEditDialogOpen}
+                  onOpenChange={setEditPlanDialogOpen}
                   onPlanUpdated={fetchPlan}
                 />
               </DialogContent>
@@ -179,8 +189,8 @@ export default function Plan() {
               Activities
             </h2>
             <Dialog
-              open={activityDialogOpen}
-              onOpenChange={setActivityDialogOpen}
+              open={addActivityDialogOpen}
+              onOpenChange={setAddActivityDialogOpen}
             >
               <DialogTrigger asChild>
                 <Button variant="outline">
@@ -199,7 +209,7 @@ export default function Plan() {
                 {/* New Plan Form */}
                 <NewActivityForm
                   onPlanCreated={fetchActivities}
-                  onCloseDialog={() => setActivityDialogOpen(false)}
+                  onCloseDialog={() => setAddActivityDialogOpen(false)}
                   planId={id!}
                 />
               </DialogContent>
@@ -257,8 +267,10 @@ export default function Plan() {
                     <div className="flex gap-3">
                       <Button
                         variant="outline"
-                        size="sm"
-                        
+                        onClick={() => {
+                          setSelectedActivity(a);
+                          setEditActivityDialogOpen(true);
+                        }}
                       >
                         Edit
                       </Button>
@@ -276,6 +288,29 @@ export default function Plan() {
               </AccordionItem>
             </Accordion>
           ))}
+
+          {selectedActivity && (
+            <Dialog
+              open={editActivityDialogOpen}
+              onOpenChange={setEditActivityDialogOpen}
+            >
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Edit activity</DialogTitle>
+                  <DialogDescription>
+                    Update your activity information below.
+                  </DialogDescription>
+                </DialogHeader>
+
+                {/* Edit Activity Form */}
+                <EditActivityForm
+                  activity={selectedActivity}
+                  onOpenChange={fetchActivities}
+                  onActivityUpdated={() => setEditActivityDialogOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
     </div>
