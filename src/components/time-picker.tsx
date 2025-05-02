@@ -54,14 +54,12 @@ export function TimePicker12({ date, setDate }: TimePickerDemoProps) {
           Period
         </Label>
         <div className="h-10">
-            <TimePeriodSelect
-            period={period}
-            setPeriod={setPeriod}
+          <TimePeriodSelect
             date={date}
             setDate={setDate}
             ref={periodRef}
             onLeftFocus={() => secondRef.current?.focus()}
-            />
+          />
         </div>
       </div>
     </div>
