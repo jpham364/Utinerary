@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea"
 
 import { TimePicker12 } from "./time-picker";
 
@@ -44,6 +45,10 @@ const formSchema = z.object({
     .min(1, { message: "Location is required." })
     .max(35, { message: "Title cannot be longer than 30 characters." }),
   time: z.date().optional(),
+  notes: z.string()
+    .max(280, {
+      message: "Notes must not be longer than 280 characters."
+  })
 });
 
 export function EditActivityForm({
@@ -57,6 +62,7 @@ export function EditActivityForm({
       title: activity.title || "",
       location: activity.location || "",
       time: activity.start ? new Date(activity.start) : undefined,
+      notes: activity.notes || ""
     },
   });
 
@@ -67,6 +73,7 @@ export function EditActivityForm({
         title: values.title,
         location: values.location,
         start: values.time,
+        notes: values.notes
       })
       .eq("id", activity.id);
 
@@ -145,6 +152,24 @@ export function EditActivityForm({
                   </div>
                 </PopoverContent>
               </Popover>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notes (optional)</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Enter additional activity details or things to remember"
+                  className="resize-none"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
