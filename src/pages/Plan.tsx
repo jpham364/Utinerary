@@ -40,6 +40,7 @@ export default function Plan() {
     id: number;
     title: string;
     location: string;
+    notes: string;
     start: string | null;
     // add other fields as needed
   };
@@ -284,6 +285,15 @@ export default function Plan() {
                       </Button>
                     </div>
                   </div>
+
+                  {a.notes && (
+                      <div className="mt-4">
+                        <p className="text-sm font-medium text-foreground">Notes</p>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          {a.notes}
+                        </p>
+                      </div>
+                  )}
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
