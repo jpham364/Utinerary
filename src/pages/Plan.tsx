@@ -212,6 +212,8 @@ export default function Plan() {
                   onPlanCreated={fetchActivities}
                   onCloseDialog={() => setAddActivityDialogOpen(false)}
                   planId={id!}
+                  planStart={plan.start}
+                  planEnd={plan.end}
                 />
               </DialogContent>
             </Dialog>
@@ -317,6 +319,8 @@ export default function Plan() {
                   activity={selectedActivity}
                   onOpenChange={fetchActivities}
                   onActivityUpdated={() => setEditActivityDialogOpen(false)}
+                  planStart={plan.start}
+                  planEnd={plan.end}
                 />
               </DialogContent>
             </Dialog>
