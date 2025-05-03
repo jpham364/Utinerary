@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import supabase from "@/utils/supabase"
-import { Button } from "@/components/ui/button"
+import supabase from "@/utils/supabase";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -13,90 +13,93 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
 
-import { TimePicker12 } from "./time-picker"
+import { TimePicker12 } from "./time-picker";
 
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/utils/utils"
-import { CalendarIcon } from "lucide-react"
+import { cn } from "@/utils/utils";
+import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-
 
 // Zod schema
 const formSchema = z.object({
-  title: z.string()
-    .min(1, { message: "Title cannot be empty."})
+  title: z
+    .string()
+    .min(1, { message: "Title cannot be empty." })
     .max(50, { message: "Title cannot be longer than 30 characters." }),
-  location: z.string()
-    .min(1, { message: "Location is required.",})
+  location: z
+    .string()
+    .min(1, { message: "Location is required." })
     .max(35, { message: "Title cannot be longer than 30 characters." }),
-  time: z.date().optional(),
-  notes: z.string()
-    .max(280, {
-      message: "Notes must not be longer than 280 characters."
-    })
-})
+  date: z.date({ required_error: "Date is required." }),
+  time: z.date({ required_error: "Time is required." }),
+  notes: z.string().max(280, {
+    message: "Notes must not be longer than 280 characters.",
+  }),
+});
 
 type NewActivityFormProps = {
-  planId: string
-  onPlanCreated: () => void
-  onCloseDialog: () => void
-}
-
+  planId: string;
+  planStart: string;
+  planEnd: string;
+  onPlanCreated: () => void;
+  onCloseDialog: () => void;
+};
 
 export function NewActivityForm({
-    planId,
-    onPlanCreated,
-    onCloseDialog,
-}: NewActivityFormProps) { 
-  
-  
-    const form = useForm<z.infer<typeof formSchema>>({
+  planId,
+  planStart,
+  planEnd,
+  onPlanCreated,
+  onCloseDialog,
+}: NewActivityFormProps) {
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       location: "",
+      date: undefined,
       time: undefined,
-      notes: ""
+      notes: "",
     },
-  })
+  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    
-    const user = await supabase.auth.getUser()
-    const userId = user?.data?.user?.id
+    const user = await supabase.auth.getUser();
+    const userId = user?.data?.user?.id;
 
-    const { data, error } = await supabase
-      .from("activities")
-      .insert([
-        {
-          title: values.title,
-          location: values.location,
-          start: values.time,
-          notes: values.notes,
-          plan_id: planId,
-          user_id: userId
-        },
-      ])
+    const fullStart = new Date(
+      `${format(values.date, "yyyy-MM-dd")}T${format(values.time, "HH:mm")}`
+    );
+
+    const { data, error } = await supabase.from("activities").insert([
+      {
+        title: values.title,
+        location: values.location,
+        start: fullStart,
+        notes: values.notes,
+        plan_id: planId,
+        user_id: userId,
+      },
+    ]);
 
     if (error) {
-      console.error("Activity insert error:", error)
+      console.error("Activity insert error:", error);
     } else {
-      console.log("Activity inserted!", data)
-      form.reset()
-      onPlanCreated()
-      onCloseDialog()
+      console.log("Activity inserted!", data);
+      form.reset();
+      onPlanCreated();
+      onCloseDialog();
     }
   }
-
-  
 
   return (
     <Form {...form}>
@@ -122,8 +125,52 @@ export function NewActivityForm({
             <FormItem>
               <FormLabel>Location</FormLabel>
               <FormControl>
-                <Input placeholder="Name or Address (e.g., Starbucks, 123 Main St)" {...field} />
+                <Input
+                  placeholder="Name or Address (e.g., Starbucks, 123 Main St)"
+                  {...field}
+                />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="date"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Date</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[240px] justify-start pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {field.value ? (
+                        format(field.value, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value ?? undefined}
+                    onSelect={field.onChange}
+                    fromDate={new Date(planStart)}
+                    toDate={planEnd ? new Date(planEnd) : undefined}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
               <FormMessage />
             </FormItem>
           )}
@@ -134,14 +181,14 @@ export function NewActivityForm({
           name="time"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel className="text-left">Time (optional)</FormLabel>
+              <FormLabel className="text-left">Time</FormLabel>
               <Popover>
-                <FormControl>
-                  <PopoverTrigger asChild>
+                <PopoverTrigger asChild>
+                  <FormControl>
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-[280px] justify-start text-left font-normal",
+                        "w-[240px] justify-start text-left font-normal",
                         !field.value && "text-muted-foreground"
                       )}
                     >
@@ -152,18 +199,18 @@ export function NewActivityForm({
                         <span>Pick a time</span>
                       )}
                     </Button>
-                  </PopoverTrigger>
-                </FormControl>
+                  </FormControl>
+                </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  
                   <div className="p-3 border-t border-border">
                     <TimePicker12
                       setDate={field.onChange}
-                      date={field.value}
+                      date={field.value ?? undefined}
                     />
                   </div>
                 </PopoverContent>
               </Popover>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -186,9 +233,8 @@ export function NewActivityForm({
           )}
         />
 
-          
         <Button type="submit">Create Activity</Button>
       </form>
     </Form>
-  )
+  );
 }

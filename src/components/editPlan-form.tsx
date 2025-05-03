@@ -42,7 +42,19 @@ const formSchema = z.object({
   location: z.string()
     .max(30, { message: "Title cannot be longer than 30 characters." })
     .optional(),
-});
+})
+.refine(
+  (data) => {
+    if (data.start && data.end) {
+      return data.start <= data.end;
+    }
+    return true; 
+  },
+  {
+    message: "Start date cannot be after end date.",
+    path: ["end"], // error on the "end" field
+  }
+);;
 
 export function EditPlanForm({ plan, onOpenChange, onPlanUpdated }: EditPlanFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
