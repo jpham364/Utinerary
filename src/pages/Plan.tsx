@@ -60,7 +60,8 @@ export default function Plan() {
     const { data, error } = await supabase
       .from("activities")
       .select("*")
-      .eq("plan_id", id);
+      .eq("plan_id", id)
+      .order("start", { ascending: true });
     if (error) {
       console.error("Error loading plans:", error);
     } else {
@@ -139,7 +140,7 @@ export default function Plan() {
               <DialogTrigger asChild>
                 <Button variant="default"> Edit</Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md" onOpenAutoFocus={(e) => e.preventDefault()}>
                 <DialogHeader>
                   <DialogTitle>Edit Plan Details</DialogTitle>
                   <DialogDescription>
@@ -306,7 +307,7 @@ export default function Plan() {
               open={editActivityDialogOpen}
               onOpenChange={setEditActivityDialogOpen}
             >
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md" onOpenAutoFocus={(e) => e.preventDefault()}>
                 <DialogHeader>
                   <DialogTitle>Edit activity</DialogTitle>
                   <DialogDescription>
