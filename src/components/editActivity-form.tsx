@@ -163,10 +163,10 @@ export function EditActivityForm({
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={field.value}
+                    selected={field.value ?? undefined}
                     onSelect={field.onChange}
                     fromDate={new Date(planStart)}
-                    toDate={new Date(planEnd)}
+                    toDate={planEnd ? new Date(planEnd) : undefined}
                     initialFocus
                   />
                 </PopoverContent>
