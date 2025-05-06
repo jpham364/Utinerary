@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, MapPin, Plus, Clock } from "lucide-react";
 import { useNavigate } from "react-router";
 
+import { ScrollToTopButton } from "@/components/scrollTopButton";
+
 import {
   Dialog,
   DialogContent,
@@ -34,7 +36,6 @@ export default function Plan() {
 
   const { id } = useParams<{ id: string }>();
 
-  const [plan, setPlan] = useState<any>(null);
 
   type Activity = {
     id: number;
@@ -45,15 +46,13 @@ export default function Plan() {
     // add other fields as needed
   };
 
+  const [plan, setPlan] = useState<any>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [addActivityDialogOpen, setAddActivityDialogOpen] = useState(false);
   const [editActivityDialogOpen, setEditActivityDialogOpen] = useState(false);
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(
-    null
-  );
-
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [editPlanDialogOpen, setEditPlanDialogOpen] = useState(false);
 
   const fetchActivities = async () => {
@@ -107,6 +106,13 @@ export default function Plan() {
     fetchPlan();
     fetchActivities();
   }, [id]);
+
+  const groupedByDate = activities.reduce((acc: Record<string, Activity[]>, a) => {
+    const dateKey = a.start ? format(new Date(a.start), "yyyy-MM-dd") : "Undated";
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(a);
+    return acc;
+  }, {});
 
   if (loading) return <p></p>;
   if (!plan) return <p>Plan not found.</p>;
@@ -220,86 +226,110 @@ export default function Plan() {
             </Dialog>
           </div>
 
-          {activities.map((a) => (
-            <Accordion
-              key={a.id}
-              type="single"
-              collapsible
-              className="w-full border rounded-lg p-3 space-y-1 hover:shadow-lg transition-shadow duration-200"
-            >
-              <AccordionItem value={`item-${a.id}`}>
-                <AccordionTrigger className="font-semibold text-md p-0">
-                  <div className="flex flex-col">
-                    <h3 className="hover:underline ">{a.title}</h3>
-                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 ">
-                      <p className="text-muted-foreground text-sm flex flex-row gap-2">
-                        {" "}
-                        <MapPin size={20} strokeWidth={1.5} /> {a.location}
-                      </p>
-                      {a.start && (
-                        <p className="text-muted-foreground text-sm flex flex-row gap-2 items-center">
-                          <Clock size={20} strokeWidth={1.5} />{" "}
-                          {format(new Date(a.start), "hh:mm a")}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="py-2">
-                  <div className="flex items-center gap-2 justify-between">
-                    <div className="space-y-1">
-                      {plan.location ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            window.open(
-                              `https://www.google.com/maps/search/${encodeURIComponent(
-                                `${a.location} ${plan.location}`
-                              )}`,
-                              "_blank"
-                            )
-                          }
-                        >
-                          View Location
-                        </Button>
-                      ) : (
-                        <p>No location set</p>
-                      )}
-                    </div>
+          <div className="overflow-x-auto flex gap-2 pb-2 border-b mb-4">
+            {Object.keys(groupedByDate).map((date) => (
+              <button
+                key={date}
+                className="px-3 py-1 text-sm rounded-lg bg-muted text-foreground hover:bg-foreground hover:text-background transition"
+                onClick={() => {
+                  const el = document.getElementById(`day-${date}`);
+                  el?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                {format(new Date(date + "T12:00:00"), "MMM d")}
+              </button>
+            ))}
+          </div>
 
-                    <div className="flex gap-3">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedActivity(a);
-                          setEditActivityDialogOpen(true);
-                        }}
-                      >
-                        Edit
-                      </Button>
-
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleActivityDelete(a.id)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-
-                  {a.notes && (
-                      <div className="mt-4">
-                        <p className="text-sm font-medium text-foreground">Notes</p>
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                          {a.notes}
-                        </p>
+          {Object.entries(groupedByDate).map(([date, dayActivities]) => (
+            <div key={date} className="space-y-4">
+              
+              <h3 id={`day-${date}`}  className="text-lg font-bold text-foreground mt-6 border-b pb-1">
+                {format(new Date(date + "T12:00:00"), "PPP")}
+              </h3>
+              {dayActivities.map((a) => (
+                <Accordion
+                  key={a.id}
+                  type="single"
+                  collapsible
+                  className="w-full border rounded-lg p-3 space-y-1 hover:shadow-lg transition-shadow duration-200"
+                >
+                  <AccordionItem value={`item-${a.id}`}>
+                    <AccordionTrigger className="font-semibold text-md p-0">
+                      <div className="flex flex-col">
+                        <h3 className="hover:underline ">{a.title}</h3>
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 ">
+                          <p className="text-muted-foreground text-sm flex flex-row gap-2">
+                            {" "}
+                            <MapPin size={20} strokeWidth={1.5} /> {a.location}
+                          </p>
+                          {a.start && (
+                            <p className="text-muted-foreground text-sm flex flex-row gap-2 items-center">
+                              <Clock size={20} strokeWidth={1.5} />{" "}
+                              {format(new Date(a.start), "hh:mm a")}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+                    </AccordionTrigger>
+                    <AccordionContent className="py-2">
+                      <div className="flex items-center gap-2 justify-between">
+                        <div className="space-y-1">
+                          {plan.location ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                window.open(
+                                  `https://www.google.com/maps/search/${encodeURIComponent(
+                                    `${a.location} ${plan.location}`
+                                  )}`,
+                                  "_blank"
+                                )
+                              }
+                            >
+                              View Location
+                            </Button>
+                          ) : (
+                            <p>No location set</p>
+                          )}
+                        </div>
+
+                        <div className="flex gap-3">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedActivity(a);
+                              setEditActivityDialogOpen(true);
+                            }}
+                          >
+                            Edit
+                          </Button>
+
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleActivityDelete(a.id)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+
+                      {a.notes && (
+                          <div className="mt-4">
+                            <p className="text-sm font-medium text-foreground">Notes</p>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                              {a.notes}
+                            </p>
+                          </div>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              ))}
+
+            </div>
           ))}
 
           {selectedActivity && (
@@ -326,6 +356,9 @@ export default function Plan() {
               </DialogContent>
             </Dialog>
           )}
+
+          <ScrollToTopButton/>
+          
         </div>
       </div>
     </div>
