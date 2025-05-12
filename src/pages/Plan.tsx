@@ -4,7 +4,7 @@ import supabase from "@/utils/supabase";
 
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, MapPin, Plus, Clock } from "lucide-react";
+import { ChevronLeft, MapPin, Plus, Clock, Share, Pencil } from "lucide-react";
 import { useNavigate } from "react-router";
 
 import { ScrollToTopButton } from "@/components/scrollTopButton";
@@ -35,7 +35,7 @@ export default function Plan() {
   const navigate = useNavigate();
 
   const { id } = useParams<{ id: string }>();
-
+  const [copySuccess, setCopySuccess] = useState(false);
 
   type Activity = {
     id: number;
@@ -102,6 +102,13 @@ export default function Plan() {
     }
   };
 
+
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(shareURL);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
+
   useEffect(() => {
     fetchPlan();
     fetchActivities();
@@ -116,6 +123,8 @@ export default function Plan() {
 
   if (loading) return <p></p>;
   if (!plan) return <p>Plan not found.</p>;
+
+  const shareURL = `${window.location.origin}/share/${plan.public_token}`;
 
   return (
     <div className="min-h-screen p-8">
@@ -139,29 +148,37 @@ export default function Plan() {
           {/* Header */}
           <div className="flex justify-between items-center">
             <h2 className="font-bold text-lg text-foreground">Details</h2>
-            <Dialog
-              open={editPlanDialogOpen}
-              onOpenChange={setEditPlanDialogOpen}
-            >
-              <DialogTrigger asChild>
-                <Button variant="default"> Edit</Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md" onOpenAutoFocus={(e) => e.preventDefault()}>
-                <DialogHeader>
-                  <DialogTitle>Edit Plan Details</DialogTitle>
-                  <DialogDescription>
-                    Update your plan information below.
-                  </DialogDescription>
-                </DialogHeader>
+            <div className="flex gap-4">
+              <Dialog
+                open={editPlanDialogOpen}
+                onOpenChange={setEditPlanDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button variant="default"><Pencil /> Edit</Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md" onOpenAutoFocus={(e) => e.preventDefault()}>
+                  <DialogHeader>
+                    <DialogTitle>Edit Plan Details</DialogTitle>
+                    <DialogDescription>
+                      Update your plan information below.
+                    </DialogDescription>
+                  </DialogHeader>
 
-                {/* Edit Plan Form */}
-                <EditPlanForm
-                  plan={plan}
-                  onOpenChange={setEditPlanDialogOpen}
-                  onPlanUpdated={fetchPlan}
-                />
-              </DialogContent>
-            </Dialog>
+                  {/* Edit Plan Form */}
+                  <EditPlanForm
+                    plan={plan}
+                    onOpenChange={setEditPlanDialogOpen}
+                    onPlanUpdated={fetchPlan}
+                  />
+                </DialogContent>
+              </Dialog>
+             
+                  <Button onClick={copyToClipboard}>
+                    <Share /> 
+                    {copySuccess ? "Copied!" : "Share"}
+                  </Button>
+                  
+            </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
@@ -308,7 +325,6 @@ export default function Plan() {
 
                           <Button
                             variant="destructive"
-                            size="sm"
                             onClick={() => handleActivityDelete(a.id)}
                           >
                             Delete
