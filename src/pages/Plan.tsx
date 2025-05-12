@@ -34,7 +34,9 @@ import { format } from "date-fns";
 export default function Plan() {
   const navigate = useNavigate();
 
-  const { id } = useParams<{ id: string }>();
+  const { token } = useParams<{ token: string }>();
+  
+
   const [copySuccess, setCopySuccess] = useState(false);
 
   type Activity = {
@@ -55,11 +57,11 @@ export default function Plan() {
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [editPlanDialogOpen, setEditPlanDialogOpen] = useState(false);
 
-  const fetchActivities = async () => {
+  const fetchActivities = async (planId: string) => {
     const { data, error } = await supabase
       .from("activities")
       .select("*")
-      .eq("plan_id", id)
+      .eq("plan_id", planId)
       .order("start", { ascending: true });
     if (error) {
       console.error("Error loading plans:", error);
@@ -69,16 +71,20 @@ export default function Plan() {
   };
 
   const fetchPlan = async () => {
+
+    
     const { data, error } = await supabase
       .from("plans")
       .select("*")
-      .eq("id", id)
+      .eq("public_token", token)
       .single();
+
 
     if (error) {
       console.error("Failed to fetch plan:", error);
     } else {
       setPlan(data);
+      fetchActivities(data.id);
     }
     setLoading(false);
   };
@@ -98,7 +104,7 @@ export default function Plan() {
       console.error("Error deleting activity:", error);
     } else {
       console.log("Activity deleted successfully!");
-      fetchActivities(); // Refresh the list after deletion
+      fetchActivities(plan.id); // Refresh the list after deletion
     }
   };
 
@@ -111,8 +117,7 @@ export default function Plan() {
 
   useEffect(() => {
     fetchPlan();
-    fetchActivities();
-  }, [id]);
+  }, [token]);
 
   const groupedByDate = activities.reduce((acc: Record<string, Activity[]>, a) => {
     const dateKey = a.start ? format(new Date(a.start), "yyyy-MM-dd") : "Undated";
@@ -121,10 +126,22 @@ export default function Plan() {
     return acc;
   }, {});
 
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUserId(data?.user?.id || null);
+    };
+    getUser();
+  }, []);
+
+
   if (loading) return <p></p>;
   if (!plan) return <p>Plan not found.</p>;
 
-  const shareURL = `${window.location.origin}/share/${plan.public_token}`;
+  const shareURL = `${window.location.origin}/plan/${plan.public_token}`;
+  const isOwner = userId && plan && userId === plan.user_id;
 
   return (
     <div className="min-h-screen p-8">
@@ -133,12 +150,14 @@ export default function Plan() {
         <Header />
 
         {/* Buttons  */}
-        <div className="flex justify-start mt-4 mb-4">
-          <Button variant="outline" onClick={() => navigate("/home")}>
-            <ChevronLeft />
-            Back
-          </Button>
-        </div>
+        {isOwner && (
+          <div className="flex justify-start mt-4 mb-4">
+            <Button variant="outline" onClick={() => navigate("/home")}>
+              <ChevronLeft />
+              Back
+            </Button>
+          </div>
+        )}
 
         {/* Title */}
         <h1 className="text-3xl font-bold mt-4">{plan.title}</h1>
@@ -149,34 +168,36 @@ export default function Plan() {
           <div className="flex justify-between items-center">
             <h2 className="font-bold text-lg text-foreground">Details</h2>
             <div className="flex gap-4">
-              <Dialog
-                open={editPlanDialogOpen}
-                onOpenChange={setEditPlanDialogOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button variant="default"><Pencil /> Edit</Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md" onOpenAutoFocus={(e) => e.preventDefault()}>
-                  <DialogHeader>
-                    <DialogTitle>Edit Plan Details</DialogTitle>
-                    <DialogDescription>
-                      Update your plan information below.
-                    </DialogDescription>
-                  </DialogHeader>
+              {isOwner && (
+                <Dialog
+                  open={editPlanDialogOpen}
+                  onOpenChange={setEditPlanDialogOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button variant="default"><Pencil /> Edit</Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md" onOpenAutoFocus={(e) => e.preventDefault()}>
+                    <DialogHeader>
+                      <DialogTitle>Edit Plan Details</DialogTitle>
+                      <DialogDescription>
+                        Update your plan information below.
+                      </DialogDescription>
+                    </DialogHeader>
 
-                  {/* Edit Plan Form */}
-                  <EditPlanForm
-                    plan={plan}
-                    onOpenChange={setEditPlanDialogOpen}
-                    onPlanUpdated={fetchPlan}
-                  />
-                </DialogContent>
-              </Dialog>
+                    {/* Edit Plan Form */}
+                    <EditPlanForm
+                      plan={plan}
+                      onOpenChange={setEditPlanDialogOpen}
+                      onPlanUpdated={fetchPlan}
+                    />
+                  </DialogContent>
+                </Dialog>
+                )}
              
-                  <Button onClick={copyToClipboard}>
-                    <Share /> 
-                    {copySuccess ? "Copied!" : "Share"}
-                  </Button>
+              <Button onClick={copyToClipboard}>
+                <Share /> 
+                {copySuccess ? "Copied!" : "Share"}
+              </Button>
                   
             </div>
           </div>
@@ -213,34 +234,36 @@ export default function Plan() {
             <h2 className="text-xl font-semibold text-foreground">
               Activities
             </h2>
-            <Dialog
-              open={addActivityDialogOpen}
-              onOpenChange={setAddActivityDialogOpen}
-            >
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  {" "}
-                  <Plus size={20} strokeWidth={2.25} /> Add
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Add an activity</DialogTitle>
-                  <DialogDescription>
-                    Set up details for your activity.
-                  </DialogDescription>
-                </DialogHeader>
+            {isOwner && (
+              <Dialog
+                open={addActivityDialogOpen}
+                onOpenChange={setAddActivityDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    {" "}
+                    <Plus size={20} strokeWidth={2.25} /> Add
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Add an activity</DialogTitle>
+                    <DialogDescription>
+                      Set up details for your activity.
+                    </DialogDescription>
+                  </DialogHeader>
 
-                {/* New Plan Form */}
-                <NewActivityForm
-                  onPlanCreated={fetchActivities}
-                  onCloseDialog={() => setAddActivityDialogOpen(false)}
-                  planId={id!}
-                  planStart={plan.start}
-                  planEnd={plan.end}
-                />
-              </DialogContent>
-            </Dialog>
+                  {/* New Plan Form */}
+                  <NewActivityForm
+                    onPlanCreated={() => fetchActivities(plan.id)}
+                    onCloseDialog={() => setAddActivityDialogOpen(false)}
+                    planId={plan.id!}
+                    planStart={plan.start}
+                    planEnd={plan.end}
+                  />
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
 
           <div className="overflow-x-auto flex gap-2 pb-2 border-b mb-4">
@@ -312,24 +335,27 @@ export default function Plan() {
                           )}
                         </div>
 
-                        <div className="flex gap-3">
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedActivity(a);
-                              setEditActivityDialogOpen(true);
-                            }}
-                          >
-                            Edit
-                          </Button>
+                        {isOwner && (
+                          <div className="flex gap-3">
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedActivity(a);
+                                setEditActivityDialogOpen(true);
+                              }}
+                            >
+                              Edit
+                            </Button>
 
-                          <Button
-                            variant="destructive"
-                            onClick={() => handleActivityDelete(a.id)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                            <Button
+                              variant="destructive"
+                              onClick={() => handleActivityDelete(a.id)}
+                            >
+                              Delete
+                            </Button>
+                          
+                          </div>
+                        )}
                       </div>
 
                       {a.notes && (
@@ -364,7 +390,7 @@ export default function Plan() {
                 {/* Edit Activity Form */}
                 <EditActivityForm
                   activity={selectedActivity}
-                  onOpenChange={fetchActivities}
+                  onOpenChange={() => fetchActivities(plan.id)}
                   onActivityUpdated={() => setEditActivityDialogOpen(false)}
                   planStart={plan.start}
                   planEnd={plan.end}

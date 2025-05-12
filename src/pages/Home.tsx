@@ -37,6 +37,7 @@ function Home() {
     id: number;
     title: string;
     start: string | null;
+    public_token: string;
     // add other fields as needed
   };
 
@@ -44,14 +45,28 @@ function Home() {
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const fetchPlans = async () => {
-    const { data, error } = await supabase.from('plans').select()
-    if (error){
-      console.error("Error loading plans:", error)
+    const {
+      data: { user },
+      error: userError
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      console.error("No authenticated user found:", userError);
+      setPlans([]);
+      return;
     }
-    else{
-      setPlans(data)
+
+    const { data, error } = await supabase
+      .from("plans")
+      .select("*")
+      .eq("user_id", user.id);
+
+    if (error) {
+      console.error("Error loading plans:", error);
+    } else {
+      setPlans(data);
     }
-  }
+  };
 
   const handleDelete = async (planId: number) => {
 
@@ -140,7 +155,7 @@ function Home() {
 
               <CardContent>
                 <div className="mt-4">
-                  <Link to={`/plan/${plan.id}`}>
+                  <Link to={`/plan/${plan.public_token}`}>
                     <Button size="sm" variant="secondary">
                       View Plan
                     </Button>
