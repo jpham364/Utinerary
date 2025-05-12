@@ -14,7 +14,6 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 
-
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -25,6 +24,8 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+
+import { nanoid } from "nanoid"
 
 import supabase from "@/utils/supabase"
 
@@ -64,17 +65,22 @@ export function NewPlanForm({
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
  
+    
     const user = await supabase.auth.getUser()
     const userId = user?.data?.user?.id
 
-    const { data, error } = await supabase
+    
+    
+
+    const { error } = await supabase
       .from("plans")
       .insert([
         {
           title: values.title,
           start: values.start,
           location: values.location || "",
-          user_id: userId
+          user_id: userId,
+          public_token: nanoid()
         },
       ])
 
@@ -82,14 +88,12 @@ export function NewPlanForm({
       console.error("Plan insert error:", error)
     } 
     else{
-      // Test console log
-      console.log("Plan inserted! - ", data)
       form.reset()
       onPlanCreated()
       onCloseDialog()
     }
 
-    console.log(values)
+    // console.log(values)
   }
 
   return (
