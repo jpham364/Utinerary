@@ -1,6 +1,6 @@
 import { useState } from "react"
 import supabase from "../utils/supabase"
-import { useNavigate, useLocation } from "react-router";
+import { useLocation } from "react-router";
 
 import { buttonVariants } from "@/components/ui/button"
 import { Link } from "react-router"
