@@ -4,7 +4,7 @@ import supabase from "@/utils/supabase";
 
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, MapPin, Plus, Clock, Share, Pencil } from "lucide-react";
+import { House, MapPin, Plus, Clock, Share, Pencil } from "lucide-react";
 import { useNavigate } from "react-router";
 
 import { ScrollToTopButton } from "@/components/scrollTopButton";
@@ -153,8 +153,8 @@ export default function Plan() {
         {isOwner && (
           <div className="flex justify-start mt-4 mb-4">
             <Button variant="outline" onClick={() => navigate("/home")}>
-              <ChevronLeft />
-              Back
+              <House />
+              Home
             </Button>
           </div>
         )}
