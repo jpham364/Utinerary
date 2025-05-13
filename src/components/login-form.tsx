@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import supabase from "@/utils/supabase";
 
 import { cn } from "@/utils/utils"
@@ -15,33 +15,34 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Link } from "react-router"
 
-
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const navigate = useNavigate()
+  const location = useLocation()
+
+  const params = new URLSearchParams(location.search);
+  const redirect = params.get("redirect");
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     setError("");
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
-    })
+    });
 
     if (error) {
       setError(error.message);
     } else {
-      navigate("/home")
+      navigate(redirect && redirect.startsWith("/") ? decodeURIComponent(redirect) : "/home");
     }
-  }
-
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -82,19 +83,20 @@ export function LoginForm({
                   required 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  />
+                />
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full">
                   Login
                 </Button>
-                
               </div>
             </div>
             <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
-              <Link to ="/signup" className="underline underline-offset-4"> Sign up </Link>
+              <Link to={redirect ? `/signup?redirect=${encodeURIComponent(redirect)}` : "/signup"} className="underline underline-offset-4"> 
+                Sign up 
+              </Link>
             </div>
           </form>
         </CardContent>
