@@ -4,7 +4,7 @@ import supabase from "@/utils/supabase";
 
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { House, MapPin, Plus, Clock, Share, Pencil } from "lucide-react";
+import { House, MapPin, Plus, Clock, Share, Pencil, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router";
 
 import { ScrollToTopButton } from "@/components/scrollTopButton";
@@ -28,6 +28,7 @@ import {
 import { NewActivityForm } from "@/components/newActivity-form";
 import { EditActivityForm } from "@/components/editActivity-form";
 import { EditPlanForm } from "@/components/editPlan-form";
+import { AddCollaboratorsForm } from "@/components/addCollaborators-form";
 
 import { format } from "date-fns";
 
@@ -56,6 +57,9 @@ export default function Plan() {
   const [editActivityDialogOpen, setEditActivityDialogOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [editPlanDialogOpen, setEditPlanDialogOpen] = useState(false);
+  const [collaboratorEmails, setCollaboratorEmails] = useState<string[]>([])
+
+  const [addCollabOpen, setAddCollabOpen] = useState(false);
 
   const fetchActivities = async (planId: string) => {
     const { data, error } = await supabase
@@ -127,21 +131,39 @@ export default function Plan() {
   }, {});
 
   const [userId, setUserId] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
+      setUser(data?.user || null);
       setUserId(data?.user?.id || null);
     };
     getUser();
   }, []);
 
+  useEffect(() => {
+    const fetchCollaborators = async () => {
+      const { data } = await supabase
+        .from("plan_collaborators")
+        .select("collaborator_email")
+        .eq("plan_id", plan.id);
+
+      if (data) {
+        setCollaboratorEmails(data.map(c => c.collaborator_email));
+      }
+    };
+
+    if (plan?.id) fetchCollaborators();
+  }, [plan]);
 
   if (loading) return <p></p>;
   if (!plan) return <p>Plan not found.</p>;
 
   const shareURL = `${window.location.origin}/plan/${plan.public_token}`;
+  const isCollaborator = user && collaboratorEmails.includes(user.email);
   const isOwner = userId && plan && userId === plan.user_id;
+  const bothPerms = isOwner || isCollaborator
 
   return (
     <div className="min-h-screen p-8">
@@ -150,12 +172,36 @@ export default function Plan() {
         <Header />
 
         {/* Buttons  */}
-        {isOwner && (
-          <div className="flex justify-start mt-4 mb-4">
+        {bothPerms && (
+          <div className="flex justify-between mt-4 mb-4">
             <Button variant="outline" onClick={() => navigate("/home")}>
               <House />
               Home
             </Button>
+
+            {isOwner && (
+                <Dialog
+                  open={addCollabOpen}
+                  onOpenChange={setAddCollabOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button variant="outline"> <UserPlus /> Add Collaborators </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md" onOpenAutoFocus={(e) => e.preventDefault()}>
+                    <DialogHeader>
+                      <DialogTitle>Add Collaborators</DialogTitle>
+                      <DialogDescription>
+                        Emails added will need to have an account to gain editing access.
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <AddCollaboratorsForm
+                      plan={plan}
+                    />
+          
+                  </DialogContent>
+                </Dialog>
+              )}
           </div>
         )}
 
@@ -168,13 +214,13 @@ export default function Plan() {
           <div className="flex justify-between items-center">
             <h2 className="font-bold text-lg text-foreground">Details</h2>
             <div className="flex gap-4">
-              {isOwner && (
+              {bothPerms && (
                 <Dialog
                   open={editPlanDialogOpen}
                   onOpenChange={setEditPlanDialogOpen}
                 >
                   <DialogTrigger asChild>
-                    <Button variant="default"><Pencil /> Edit</Button>
+                    <Button variant="default" size="sm"><Pencil /> Edit</Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-md" onOpenAutoFocus={(e) => e.preventDefault()}>
                     <DialogHeader>
@@ -194,7 +240,7 @@ export default function Plan() {
                 </Dialog>
                 )}
              
-              <Button onClick={copyToClipboard}>
+              <Button onClick={copyToClipboard} size="sm">
                 <Share /> 
                 {copySuccess ? "Copied!" : "Share"}
               </Button>
@@ -234,7 +280,7 @@ export default function Plan() {
             <h2 className="text-xl font-semibold text-foreground">
               Activities
             </h2>
-            {isOwner && (
+            {bothPerms && (
               <Dialog
                 open={addActivityDialogOpen}
                 onOpenChange={setAddActivityDialogOpen}
@@ -335,7 +381,7 @@ export default function Plan() {
                           )}
                         </div>
 
-                        {isOwner && (
+                        {bothPerms && (
                           <div className="flex gap-3">
                             <Button
                               variant="outline"
