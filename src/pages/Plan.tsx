@@ -343,26 +343,38 @@ export default function Plan() {
           </div>
 
           <div className="overflow-x-auto flex gap-2 pb-2 border-b mb-4">
-            {Object.keys(groupedByDate).map((date) => (
-              <button
-                key={date}
-                className="px-3 py-1 text-sm rounded-lg bg-muted text-foreground hover:bg-foreground hover:text-background transition"
-                onClick={() => {
-                  const el = document.getElementById(`day-${date}`);
-                  el?.scrollIntoView({ behavior: "smooth" });
-                }}
-              >
-                {format(new Date(date + "T12:00:00"), "MMM d")}
-              </button>
+            {Object.keys(groupedByDate)
+              .sort((a, b) => {
+                if (a === "Undated") return 1; // Put "Undated" at the end
+                if (b === "Undated") return -1;
+                return new Date(a).getTime() - new Date(b).getTime(); // Sort dates ascending
+              })
+              .map((date) => (
+                <button
+                  key={date}
+                  className="px-3 py-1 text-sm rounded-lg bg-muted text-foreground hover:bg-foreground hover:text-background transition"
+                  onClick={() => {
+                    const el = document.getElementById(`day-${date}`);
+                    el?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  {date === "Undated"
+                    ? "Unscheduled"
+                    : format(new Date(date + "T12:00:00"), "MMM d")}
+                </button>
             ))}
           </div>
 
           {Object.entries(groupedByDate).map(([date, dayActivities]) => (
             <div key={date} className="space-y-4">
               
-              <h3 id={`day-${date}`}  className="text-lg font-bold text-foreground mt-6 border-b pb-1">
-                {format(new Date(date + "T12:00:00"), "PPP")}
+              <h3 id={`day-${date}`} className="text-lg font-bold text-foreground mt-6 border-b pb-1">
+                {date === "Undated"
+                  ? "Unscheduled"
+                  : format(new Date(date + "T12:00:00"), "PPP")}
               </h3>
+
+
               {dayActivities.map((a) => (
                 <Accordion
                   key={a.id}

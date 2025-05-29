@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -13,6 +14,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +30,7 @@ import {
 import { cn } from "@/utils/utils";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { Checkbox } from "../ui/checkbox";
 
 // Zod schema
 const formSchema = z.object({
@@ -39,11 +42,12 @@ const formSchema = z.object({
     .string()
     .min(1, { message: "Location is required." })
     .max(35, { message: "Title cannot be longer than 30 characters." }),
-  date: z.date({ required_error: "Date is required." }),
-  time: z.date({ required_error: "Time is required." }),
+  date: z.date().optional(),
+  time: z.date().optional(),
   notes: z.string().max(280, {
     message: "Notes must not be longer than 280 characters.",
   }),
+  unscheduled: z.boolean().optional(),
 });
 
 type NewActivityFormProps = {
@@ -69,16 +73,29 @@ export function NewActivityForm({
       date: undefined,
       time: undefined,
       notes: "",
+      unscheduled: false,
     },
   });
+
+  const unscheduled = form.watch("unscheduled");
+
+  useEffect(() => {
+    if (unscheduled) {
+      form.setValue("date", undefined);
+      form.setValue("time", undefined);
+    }
+  }, [unscheduled, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const user = await supabase.auth.getUser();
     const userId = user?.data?.user?.id;
 
-    const fullStart = new Date(
-      `${format(values.date, "yyyy-MM-dd")}T${format(values.time, "HH:mm")}`
-    );
+    let fullStart: Date | null = null;
+    if (values.date && values.time) {
+      fullStart = new Date(
+        `${format(values.date, "yyyy-MM-dd")}T${format(values.time, "HH:mm")}`
+      );
+    }
 
     const { data, error } = await supabase.from("activities").insert([
       {
@@ -136,6 +153,28 @@ export function NewActivityForm({
         />
 
         <FormField
+        control={form.control}
+        name="unscheduled"
+        render={({ field }) => (
+          <FormItem className="flex items-center space-x-3">
+            <FormControl>
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                className="h-5 w-5"
+              />
+            </FormControl>
+            <div className="space-y-1 leading-none">
+              <FormLabel>Don’t know the time yet?</FormLabel>
+              <FormDescription>
+                Leave the date and time blank for now.
+              </FormDescription>
+            </div>
+          </FormItem>
+        )}
+      />
+
+        <FormField
           control={form.control}
           name="date"
           render={({ field }) => (
@@ -146,6 +185,7 @@ export function NewActivityForm({
                   <FormControl>
                     <Button
                       variant="outline"
+                      disabled={form.watch("unscheduled")}
                       className={cn(
                         "w-[240px] justify-start pl-3 text-left font-normal",
                         !field.value && "text-muted-foreground"
@@ -187,6 +227,7 @@ export function NewActivityForm({
                   <FormControl>
                     <Button
                       variant="outline"
+                      disabled={form.watch("unscheduled")}
                       className={cn(
                         "w-[240px] justify-start text-left font-normal",
                         !field.value && "text-muted-foreground"
