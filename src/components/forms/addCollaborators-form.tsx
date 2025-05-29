@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useState, useEffect } from "react";
 
 import supabase from "@/utils/supabase";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -20,13 +19,15 @@ import { Input } from "@/components/ui/input";
 
 interface AddCollaboratorsProps {
   plan: { id: string };
+  collaboratorEmails: string[];
+  onUpdate: () => void;
 }
 
 const formSchema = z.object({
   collaborator_email: z.string().email({ message: "Enter a valid email address." }),
 });
 
-export function AddCollaboratorsForm({ plan }: AddCollaboratorsProps) {
+export function AddCollaboratorsForm({ plan, collaboratorEmails, onUpdate }: AddCollaboratorsProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -34,13 +35,9 @@ export function AddCollaboratorsForm({ plan }: AddCollaboratorsProps) {
     },
   });
 
-  const [collaboratorEmails, setCollaboratorEmails] = useState<string[]>([])
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    const newEmail = values.collaborator_email.trim().toLowerCase();
 
-    const newEmail = values.collaborator_email.trim().toLowerCase(); // normalize for consistency
-
-    // Check if the email already exists
     if (collaboratorEmails.includes(newEmail)) {
       form.setError("collaborator_email", {
         type: "manual",
@@ -49,55 +46,35 @@ export function AddCollaboratorsForm({ plan }: AddCollaboratorsProps) {
       return;
     }
 
-    const { error } = await supabase
-      .from("plan_collaborators")
-      .insert([
-        {
-          plan_id: plan.id,
-          collaborator_email: values.collaborator_email,
-        },
-      ]);
+    const { error } = await supabase.from("plan_collaborators").insert([
+      {
+        plan_id: plan.id,
+        collaborator_email: newEmail,
+      },
+    ]);
 
     if (error) {
       console.error("Error adding collaborator:", error);
     } else {
-      console.log("Collaborator added successfully!");
-      fetchCollaborators();
+      onUpdate(); // Call parent to refetch
       form.reset();
     }
   }
 
-   const handleDelete = async (collaboratorEmail: string) => {
-
+  const handleDelete = async (email: string) => {
     const { error } = await supabase
-      .from('plan_collaborators')
+      .from("plan_collaborators")
       .delete()
       .eq("plan_id", plan.id)
-      .eq('collaborator_email', collaboratorEmail);
-  
+      .eq("collaborator_email", email);
+
     if (error) {
-      console.error("Error deleting user:", error);
+      console.error("Error deleting collaborator:", error);
     } else {
-      console.log("User deleted successfully!");
-      fetchCollaborators(); // Refresh the list after deletion
-      form.reset(); 
+      onUpdate(); // Call parent to refetch
+      form.reset();
     }
   };
-
-  const fetchCollaborators = async () => {
-    const { data } = await supabase
-      .from("plan_collaborators")
-      .select("collaborator_email")
-      .eq("plan_id", plan.id);
-
-    if (data) {
-      setCollaboratorEmails(data.map(c => c.collaborator_email));
-    }
-  };
-
-  useEffect(() => {
-    if (plan?.id) fetchCollaborators();
-  }, [plan]);
 
   return (
     <Form {...form}>
@@ -115,25 +92,21 @@ export function AddCollaboratorsForm({ plan }: AddCollaboratorsProps) {
             </FormItem>
           )}
         />
-
-        {collaboratorEmails.length > 0 && (
-          <div className="space-y-1 text-sm">
-            <p className="text-muted-foreground font-medium">Current Collaborators:</p>
-              <ScrollArea className="h-[200px] w-full rounded-md border p-4">
-                <div className="flex flex-col gap-3">
-                {collaboratorEmails.map((email) => (
-                  <div key={email} className="flex justify-between">
-                    <p>{email}</p>
-                    <Button size="sm" type="button" onClick={() => handleDelete(email)}>Remove</Button>
-                  </div>
-                ))}
-                </div>
-              </ScrollArea>
        
-          </div>
-        )}
-
-        
+        <div className="space-y-1 text-sm">
+          <p className="text-muted-foreground font-medium">Current Collaborators:</p>
+            <ScrollArea className="h-[200px] w-full rounded-md border p-4">
+              <div className="flex flex-col gap-3">
+              {collaboratorEmails.map((email) => (
+                <div key={email} className="flex justify-between">
+                  <p>{email}</p>
+                  <Button size="sm" type="button" onClick={() => handleDelete(email)}>Remove</Button>
+                </div>
+              ))}
+              </div>
+            </ScrollArea>
+      
+        </div>
 
         <Button type="submit" className="w-full">
           Add

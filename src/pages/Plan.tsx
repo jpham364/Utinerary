@@ -45,6 +45,7 @@ export default function Plan() {
     location: string;
     notes: string;
     start: string | null;
+    category: string | null;
   };
 
   const [plan, setPlan] = useState<any>(null);
@@ -58,6 +59,13 @@ export default function Plan() {
   const [collaboratorEmails, setCollaboratorEmails] = useState<string[]>([])
 
   const [addCollabOpen, setAddCollabOpen] = useState(false);
+
+  const categoryColors: Record<string, string> = {
+    Dining: "bg-green-200 text-green-800",
+    Shopping: "bg-yellow-200 text-yellow-800",
+    Entertainment: "bg-purple-200 text-purple-800",
+    Other: "bg-gray-200 text-gray-800",
+  };
 
   const fetchActivities = async (planId: string) => {
     const { data, error } = await supabase
@@ -128,6 +136,17 @@ export default function Plan() {
 
   const [userId, setUserId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
+
+  const fetchCollaborators = async () => {
+  const { data } = await supabase
+    .from("plan_collaborators")
+    .select("collaborator_email")
+    .eq("plan_id", plan.id);
+
+    if (data) {
+      setCollaboratorEmails(data.map(c => c.collaborator_email));
+    }
+  };
 
   useEffect(() => {
     const getUser = async () => {
@@ -227,6 +246,8 @@ export default function Plan() {
 
                     <AddCollaboratorsForm
                       plan={plan}
+                      collaboratorEmails={collaboratorEmails}
+                      onUpdate={fetchCollaborators}
                     />
           
                   </DialogContent>
@@ -343,26 +364,38 @@ export default function Plan() {
           </div>
 
           <div className="overflow-x-auto flex gap-2 pb-2 border-b mb-4">
-            {Object.keys(groupedByDate).map((date) => (
-              <button
-                key={date}
-                className="px-3 py-1 text-sm rounded-lg bg-muted text-foreground hover:bg-foreground hover:text-background transition"
-                onClick={() => {
-                  const el = document.getElementById(`day-${date}`);
-                  el?.scrollIntoView({ behavior: "smooth" });
-                }}
-              >
-                {format(new Date(date + "T12:00:00"), "MMM d")}
-              </button>
+            {Object.keys(groupedByDate)
+              .sort((a, b) => {
+                if (a === "Undated") return 1; // Put "Undated" at the end
+                if (b === "Undated") return -1;
+                return new Date(a).getTime() - new Date(b).getTime(); // Sort dates ascending
+              })
+              .map((date) => (
+                <button
+                  key={date}
+                  className="px-3 py-1 text-sm rounded-lg bg-muted text-foreground hover:bg-foreground hover:text-background transition"
+                  onClick={() => {
+                    const el = document.getElementById(`day-${date}`);
+                    el?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  {date === "Undated"
+                    ? "Unscheduled"
+                    : format(new Date(date + "T12:00:00"), "MMM d")}
+                </button>
             ))}
           </div>
 
           {Object.entries(groupedByDate).map(([date, dayActivities]) => (
             <div key={date} className="space-y-4">
               
-              <h3 id={`day-${date}`}  className="text-lg font-bold text-foreground mt-6 border-b pb-1">
-                {format(new Date(date + "T12:00:00"), "PPP")}
+              <h3 id={`day-${date}`} className="text-lg font-bold text-foreground mt-6 border-b pb-1">
+                {date === "Undated"
+                  ? "Unscheduled"
+                  : format(new Date(date + "T12:00:00"), "PPP")}
               </h3>
+
+
               {dayActivities.map((a) => (
                 <Accordion
                   key={a.id}
@@ -372,21 +405,30 @@ export default function Plan() {
                 >
                   <AccordionItem value={`item-${a.id}`}>
                     <AccordionTrigger className="font-semibold text-md p-0">
-                      <div className="flex flex-col">
-                        <h3 className="hover:underline ">{a.title}</h3>
-                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 ">
-                          <p className="text-muted-foreground text-sm flex flex-row gap-2">
-                            {" "}
-                            <MapPin size={20} strokeWidth={1.5} /> {a.location}
-                          </p>
-                          {a.start && (
-                            <p className="text-muted-foreground text-sm flex flex-row gap-2 items-center">
-                              <Clock size={20} strokeWidth={1.5} />{" "}
-                              {format(new Date(a.start), "hh:mm a")}
+                      <div className="w-full flex justify-between items-start">
+                        <div className="flex flex-col">
+                          <h3 className="hover:underline ">{a.title}</h3>
+                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 ">
+                            <p className="text-muted-foreground text-sm flex flex-row gap-2">
+                              {" "}
+                              <MapPin size={20} strokeWidth={1.5} /> {a.location}
                             </p>
-                          )}
+                            {a.start && (
+                              <p className="text-muted-foreground text-sm flex flex-row gap-2 items-center">
+                                <Clock size={20} strokeWidth={1.5} />{" "}
+                                {format(new Date(a.start), "hh:mm a")}
+                              </p>
+                            )}
+                          </div>
                         </div>
+
+                        {a.category && (
+                          <span className={`ml-4 mt-1 text-xs font-semibold px-2 py-1 rounded-full ${categoryColors[a.category] || "bg-gray-200 text-gray-800"}`}>
+                            {a.category}
+                          </span>
+                        )}
                       </div>
+
                     </AccordionTrigger>
                     <AccordionContent className="py-2">
                       <div className="flex items-center gap-2 justify-between">
