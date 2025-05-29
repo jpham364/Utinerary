@@ -45,6 +45,7 @@ export default function Plan() {
     location: string;
     notes: string;
     start: string | null;
+    category: string | null;
   };
 
   const [plan, setPlan] = useState<any>(null);
@@ -58,6 +59,13 @@ export default function Plan() {
   const [collaboratorEmails, setCollaboratorEmails] = useState<string[]>([])
 
   const [addCollabOpen, setAddCollabOpen] = useState(false);
+
+  const categoryColors: Record<string, string> = {
+    Dining: "bg-green-200 text-green-800",
+    Shopping: "bg-yellow-200 text-yellow-800",
+    Entertainment: "bg-purple-200 text-purple-800",
+    Other: "bg-gray-200 text-gray-800",
+  };
 
   const fetchActivities = async (planId: string) => {
     const { data, error } = await supabase
@@ -397,21 +405,30 @@ export default function Plan() {
                 >
                   <AccordionItem value={`item-${a.id}`}>
                     <AccordionTrigger className="font-semibold text-md p-0">
-                      <div className="flex flex-col">
-                        <h3 className="hover:underline ">{a.title}</h3>
-                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 ">
-                          <p className="text-muted-foreground text-sm flex flex-row gap-2">
-                            {" "}
-                            <MapPin size={20} strokeWidth={1.5} /> {a.location}
-                          </p>
-                          {a.start && (
-                            <p className="text-muted-foreground text-sm flex flex-row gap-2 items-center">
-                              <Clock size={20} strokeWidth={1.5} />{" "}
-                              {format(new Date(a.start), "hh:mm a")}
+                      <div className="w-full flex justify-between items-start">
+                        <div className="flex flex-col">
+                          <h3 className="hover:underline ">{a.title}</h3>
+                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 ">
+                            <p className="text-muted-foreground text-sm flex flex-row gap-2">
+                              {" "}
+                              <MapPin size={20} strokeWidth={1.5} /> {a.location}
                             </p>
-                          )}
+                            {a.start && (
+                              <p className="text-muted-foreground text-sm flex flex-row gap-2 items-center">
+                                <Clock size={20} strokeWidth={1.5} />{" "}
+                                {format(new Date(a.start), "hh:mm a")}
+                              </p>
+                            )}
+                          </div>
                         </div>
+
+                        {a.category && (
+                          <span className={`ml-4 mt-1 text-xs font-semibold px-2 py-1 rounded-full ${categoryColors[a.category] || "bg-gray-200 text-gray-800"}`}>
+                            {a.category}
+                          </span>
+                        )}
                       </div>
+
                     </AccordionTrigger>
                     <AccordionContent className="py-2">
                       <div className="flex items-center gap-2 justify-between">

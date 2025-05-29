@@ -56,6 +56,12 @@ const formSchema = z.object({
     message: "Notes must not be longer than 280 characters.",
   }),
   unscheduled: z.boolean().optional(),
+  category: z
+  .union([
+    z.enum(["Dining", "Shopping", "Outdoors", "Entertainment", "Travel", "Other"]),
+    z.literal(""),
+  ])
+  .optional(),
 });
 
 export function EditActivityForm({
@@ -77,6 +83,7 @@ export function EditActivityForm({
       time: initialTime,
       notes: activity.notes || "",
       unscheduled: activity.start === null,
+      category: activity.category || ""
     },
   });
 
@@ -107,6 +114,7 @@ export function EditActivityForm({
         location: values.location,
         start: fullStart,
         notes: values.notes,
+        category: values.category
       })
       .eq("id", activity.id);
 
@@ -252,6 +260,26 @@ export function EditActivityForm({
                   </div>
                 </PopoverContent>
               </Popover>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="category"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Category</FormLabel>
+              <FormControl>
+                <select {...field} className="w-full border p-2 rounded-md">
+                  <option value="">Select a category</option>
+                  <option value="Dining">Dining</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Other">Other</option>
+                </select>
+              </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />

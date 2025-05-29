@@ -48,6 +48,12 @@ const formSchema = z.object({
     message: "Notes must not be longer than 280 characters.",
   }),
   unscheduled: z.boolean().optional(),
+  category: z
+  .union([
+    z.enum(["Dining", "Shopping", "Entertainment", "Other"]),
+    z.literal(""),
+  ])
+  .optional(),
 });
 
 type NewActivityFormProps = {
@@ -74,6 +80,7 @@ export function NewActivityForm({
       time: undefined,
       notes: "",
       unscheduled: false,
+      category: ""
     },
   });
 
@@ -105,6 +112,7 @@ export function NewActivityForm({
         notes: values.notes,
         plan_id: planId,
         user_id: userId,
+        category: values.category
       },
     ]);
 
@@ -251,6 +259,26 @@ export function NewActivityForm({
                   </div>
                 </PopoverContent>
               </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="category"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Category</FormLabel>
+              <FormControl>
+                <select {...field} className="w-full border p-2 rounded-md">
+                  <option value="">Select a category</option>
+                  <option value="Dining">Dining</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Other">Other</option>
+                </select>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
