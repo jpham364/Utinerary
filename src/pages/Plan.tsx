@@ -129,6 +129,17 @@ export default function Plan() {
   const [userId, setUserId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
 
+  const fetchCollaborators = async () => {
+  const { data } = await supabase
+    .from("plan_collaborators")
+    .select("collaborator_email")
+    .eq("plan_id", plan.id);
+
+    if (data) {
+      setCollaboratorEmails(data.map(c => c.collaborator_email));
+    }
+  };
+
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -227,6 +238,8 @@ export default function Plan() {
 
                     <AddCollaboratorsForm
                       plan={plan}
+                      collaboratorEmails={collaboratorEmails}
+                      onUpdate={fetchCollaborators}
                     />
           
                   </DialogContent>
