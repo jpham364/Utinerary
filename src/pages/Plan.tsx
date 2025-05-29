@@ -36,7 +36,6 @@ export default function Plan() {
   const navigate = useNavigate();
 
   const { token } = useParams<{ token: string }>();
-  
 
   const [copySuccess, setCopySuccess] = useState(false);
 
@@ -46,7 +45,6 @@ export default function Plan() {
     location: string;
     notes: string;
     start: string | null;
-    // add other fields as needed
   };
 
   const [plan, setPlan] = useState<any>(null);
@@ -76,7 +74,6 @@ export default function Plan() {
 
   const fetchPlan = async () => {
 
-    
     const { data, error } = await supabase
       .from("plans")
       .select("*")
@@ -111,7 +108,6 @@ export default function Plan() {
       fetchActivities(plan.id); // Refresh the list after deletion
     }
   };
-
 
   const copyToClipboard = async () => {
     await navigator.clipboard.writeText(shareURL);
@@ -156,6 +152,40 @@ export default function Plan() {
 
     if (plan?.id) fetchCollaborators();
   }, [plan]);
+
+  useEffect(() => {
+    if (!plan?.id) return;
+
+    // initializes a Supabase channel for real-time events:
+    const channel = supabase.channel('plan-activity-updates');
+
+    // This listens for any changes (event: '*') to the activities 
+    // table where plan_id equals the current plan’s ID.
+    // When a change happens (insert, update, delete), it calls: fetchActivities()
+    // This applies similarly to the plans table
+    channel
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'activities',
+        filter: `plan_id=eq.${plan.id}`,
+      }, () => {
+        fetchActivities(plan.id);
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'plans',
+        filter: `public_token=eq.${token}`,
+      }, () => {
+        fetchPlan();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel); // Properly unsubscribe
+    };
+  }, [plan?.id, token]);
 
   if (loading) return <p></p>;
   if (!plan) return <p>Plan not found.</p>;
