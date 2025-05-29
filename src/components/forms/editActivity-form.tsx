@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 
-import { TimePicker12 } from "./time-picker";
+import { TimePicker12 } from "@/components/ui/timePicker/time-picker"
 
 import {
   Popover,
@@ -28,6 +28,14 @@ import {
 import { cn } from "@/utils/utils";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+
+type EditActivityFormProps = {
+  activity: any;
+  planStart: string;
+  planEnd: string;
+  onOpenChange: (open: boolean) => void;
+  onActivityUpdated: () => void;
+};
 
 // Zod schema
 const formSchema = z.object({
@@ -46,58 +54,49 @@ const formSchema = z.object({
   }),
 });
 
-type NewActivityFormProps = {
-  planId: string;
-  planStart: string;
-  planEnd: string;
-  onPlanCreated: () => void;
-  onCloseDialog: () => void;
-};
-
-export function NewActivityForm({
-  planId,
+export function EditActivityForm({
+  activity,
   planStart,
   planEnd,
-  onPlanCreated,
-  onCloseDialog,
-}: NewActivityFormProps) {
+  onOpenChange,
+  onActivityUpdated,
+}: EditActivityFormProps) {
+  const initialDate = activity.start ? new Date(activity.start) : undefined;
+  const initialTime = activity.start ? new Date(activity.start) : undefined;
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
-      location: "",
-      date: undefined,
-      time: undefined,
-      notes: "",
+      title: activity.title || "",
+      location: activity.location || "",
+      date: initialDate,
+      time: initialTime,
+      notes: activity.notes || "",
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const user = await supabase.auth.getUser();
-    const userId = user?.data?.user?.id;
-
     const fullStart = new Date(
       `${format(values.date, "yyyy-MM-dd")}T${format(values.time, "HH:mm")}`
     );
 
-    const { data, error } = await supabase.from("activities").insert([
-      {
+    const { error } = await supabase
+      .from("activities")
+      .update({
         title: values.title,
         location: values.location,
         start: fullStart,
         notes: values.notes,
-        plan_id: planId,
-        user_id: userId,
-      },
-    ]);
+      })
+      .eq("id", activity.id);
 
     if (error) {
-      console.error("Activity insert error:", error);
+      console.error("Activity update error:", error);
     } else {
-      console.log("Activity inserted!", data);
+      console.log("Activity updated successfully!");
       form.reset();
-      onPlanCreated();
-      onCloseDialog();
+      onActivityUpdated();
+      onOpenChange(false);
     }
   }
 
@@ -135,6 +134,7 @@ export function NewActivityForm({
           )}
         />
 
+        {/* Date */}
         <FormField
           control={form.control}
           name="date"
@@ -183,12 +183,12 @@ export function NewActivityForm({
             <FormItem className="flex flex-col">
               <FormLabel className="text-left">Time</FormLabel>
               <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
+                <FormControl>
+                  <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-[240px] justify-start text-left font-normal",
+                        "w-[280px] justify-start text-left font-normal",
                         !field.value && "text-muted-foreground"
                       )}
                     >
@@ -199,18 +199,14 @@ export function NewActivityForm({
                         <span>Pick a time</span>
                       )}
                     </Button>
-                  </FormControl>
-                </PopoverTrigger>
+                  </PopoverTrigger>
+                </FormControl>
                 <PopoverContent className="w-auto p-0">
                   <div className="p-3 border-t border-border">
-                    <TimePicker12
-                      setDate={field.onChange}
-                      date={field.value ?? undefined}
-                    />
+                    <TimePicker12 setDate={field.onChange} date={field.value} />
                   </div>
                 </PopoverContent>
               </Popover>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -233,7 +229,7 @@ export function NewActivityForm({
           )}
         />
 
-        <Button type="submit">Create Activity</Button>
+        <Button type="submit">Update Activity</Button>
       </form>
     </Form>
   );

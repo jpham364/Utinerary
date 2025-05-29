@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { House, MapPin, Plus, Clock, Share, Pencil, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router";
 
-import { ScrollToTopButton } from "@/components/scrollTopButton";
+import { ScrollToTopButton } from "@/components/ui/scrollTopButton";
 
 import {
   Dialog,
@@ -25,10 +25,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-import { NewActivityForm } from "@/components/newActivity-form";
-import { EditActivityForm } from "@/components/editActivity-form";
-import { EditPlanForm } from "@/components/editPlan-form";
-import { AddCollaboratorsForm } from "@/components/addCollaborators-form";
+import { NewActivityForm } from "@/components/forms/newActivity-form";
+import { EditActivityForm } from "@/components/forms/editActivity-form";
+import { EditPlanForm } from "@/components/forms/editPlan-form";
+import { AddCollaboratorsForm } from "@/components/forms/addCollaborators-form";
 
 import { format } from "date-fns";
 

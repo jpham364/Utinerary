@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Header } from "@/components/Header";
 
-import { NewPlanForm } from "@/components/newPlan-form";
+import { NewPlanForm } from "@/components/forms/newPlan-form";
 import { format } from "date-fns"
 
 function Home() {
