@@ -2,6 +2,8 @@
 
 Utinerary is a collaborative web application designed to simplify how you plan trips, hangouts, and dates. Instead of juggling through notes, spreadsheets and documents, Utinerary lets you centralize your itinerary in one place and share it with friends for easy planning and collaboration.
 
+![Screenshot 2025-06-08 at 1 21 46 AM](https://github.com/user-attachments/assets/f5e1675f-8ed3-41b8-8a5a-63d7138609f6)
+
 ## Features
 
 - **Create and manage itineraries** with titles, locations, times, and notes
