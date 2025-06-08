@@ -46,6 +46,7 @@ Utinerary is a collaborative web application designed to simplify how you plan t
 ├── package-lock.json        # Exact version lock file for installed npm packages
 ├── package.json             # Project metadata, dependencies, and scripts
 ├── README.md                # Project documentation
+├── schema.sql               # Supabase project setup schema
 ├── tsconfig.node.json       # TypeScript configuration for Node.js-specific tooling 
 ├── vercel.json              # Vercel deployment configuration
 └── vite.config.ts           # Vite configuration 
@@ -86,15 +87,14 @@ cp .env.example .env
 
 Before running the app, you'll need to set up your database schema and row-level security (RLS) policies in Supabase.
 
-1. Create / Navigate to your a [Supabase project](https://app.supabase.com/)
-2. Navigate to **Table Editor → Create a new table**
-3. Create the following tables:
-   - `plans`
-   - `activities`
-   - `plan_collaborators`
-4. Enable **Row Level Security (RLS)** for each table
-5. Add appropriate **RLS policies** to restrict or allow access  
-   > For example, allow users to read/update their own plans and activities.
+1. Create or navigate to your [Supabase project](https://app.supabase.com/)
+2. Go to **SQL Editor → New Query**
+3. Paste the contents of `schema.sql` or upload and run the file
+4. This will:
+   - Create the necessary tables
+   - Set up relationships
+   - Enable RLS
+   - Define access policies
 
 ### Start the App
 
