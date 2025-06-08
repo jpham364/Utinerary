@@ -4,17 +4,22 @@ Utinerary is a collaborative web application designed to simplify how you plan t
 
 ## Features
 
--**Create and manage itineraries** with titles, locations, times, and notes
--**Collaborate** with friends through editing and sharing
--**Public sharable links** for guests to view plans without needing an account
--**Maps** opens locations directly in Google Maps, both on desktop or mobile
--**Live updates** using Supabase Realtime for seamless collaboration (no page refresh needed!)
--**Optional activity details** like notes and time for each activity
+- **Create and manage itineraries** with titles, locations, times, and notes
+
+- **Collaborate** with friends through editing and sharing
+
+- **Public sharable links** for guests to view plans without needing an account
+
+- **Maps** opens locations directly in Google Maps, both on desktop or mobile
+
+- **Live updates** using Supabase Realtime for seamless collaboration (no page refresh needed!)
+
+- **Optional activity details** like notes and time for each activity
 
 ## Tech Stack
 
--**Frontend**: React, Vite, TypeScript, Tailwind CSS, ShadCN UI
--**Backend**: Supabase (PostgreSQL, Auth, Realtime)
+- **Frontend**: React, Vite, TypeScript, Tailwind CSS, ShadCN UI
+- **Backend**: Supabase (PostgreSQL, Auth, Realtime)
 
 ## Codebase Structure
 
@@ -53,8 +58,8 @@ To run this project locally, you’ll need Node.js installed and a Supabase proj
 
 ### Prerequisites
 
-  -Node.js (v18 or higher recommended)
-  -Supabase account and project
+  - Node.js (v18 or higher recommended)
+  - Supabase account and project
 
 ### Clone the Repository
 
@@ -99,4 +104,4 @@ You can now run the development server:
 npm run dev
 ```
 
-Then visit [http://localhost:3000] to view Utinerary in your preferred browser.
+Visit http://localhost:3000 to view Utinerary in your preferred browser.
